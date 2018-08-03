@@ -16,9 +16,11 @@ public:
         }
     }
 
-    void eliminate(double *a, const size_t rows, const size_t cols) {
+    void eliminate(double *a, const size_t rows, const size_t cols,
+                   double &det) {
         // Applying Gaussian Elimination
         size_t dimensions = (rows < cols)? rows : cols;
+        det = 1.0; // Assuming positive
 
         // Main loop going through all columns
         for(size_t k=0; k<dimensions; k++) {
@@ -40,8 +42,10 @@ public:
             }
 
             // Step #2 : Swap row with highest value for that column to the top
-            if (k != pivot)
+            if (k != pivot) {
                 swap_rows(a, k, pivot, cols);
+                det = -det; // Invert sign for each rows swap
+            }
 
             // Loop for all remaining rows
             for(size_t i=k+1; i<rows; i++) {
@@ -59,43 +63,52 @@ public:
                 a[i * cols + k] = 0;
             }
         }
+
+        // calculate determinant by taking product of pivot of each row
+        for(size_t i=0; i<rows; i++)
+            for(size_t j=0; j<cols; j++)
+                if(a[i *cols+ j] != 0) {
+                    det *= a[i *cols+ j];
+                    break;
+                }
+
     }
 
     void back_substitute(const double * const a, double * const x,
-                           const size_t rows, const size_t cols) {
+                         const size_t rows, const size_t cols) {
         // Solve for solution vector x by back substitution
-        // *a must be in Row Echelon Form
+        // *a must be an upper triangular matrix
 
-        for (size_t i = rows - 1; i >= 0; i--) {
+        for (int i = rows - 1; i >= 0; --i) {
             double sum = 0.0;
 
-            for (size_t j = cols - 2; j > i; j--)
-                sum += x[j] * a[i *cols+ j];
+            for (size_t j = cols - 2; j > i; --j) {
+                sum += x[j] * a[i * cols + j];
+            }
 
-            x[i] = (a[i *cols+ cols-1] - sum) / a[i *cols+ i];
+            x[i] = (a[i * cols + cols - 1] - sum) / a[i * cols + i];
         }
     }
 
     void reduce(double *a, const size_t rows, const size_t cols) {
         // Applying Gauss-Jordan Elimination
-        // *a must be in Row Echelon Form
 
         // After this, we know what row to start on (r-1)
         // to go back through the matrix
-        pivot = 1
-        for(size_t k=1; k<cols; k++) {
-            if (a[pivot * cols + k] != 0) {
+        size_t row = 0;
+        for(size_t col=0; col<cols-1; col++) {
+            if (a[row *cols+ col] != 0) {
 
                 // divide row by pivot and leaving pivot as 1
-                for(size_t i=cols-1; i>=k; i--)
-                    a[pivot * cols + i] /= A[pivot * cols + k]
+                for(size_t i=cols-1; i>=col; i--)
+                    a[row *cols+ i] /= a[row *cols+ col];
 
                 // subtract value from above row and set values above pivot to 0
-                for(size_t i=1; i<pivot; i++)
-                    for(size_t j=cols-1; j>=k; j--)
-                        a[i *cols+ j] -= a[i *cols+ k] * a[pivot *cols+ j]
+                for(size_t i=0; i<row-1; i++)
+                    for(size_t j=cols-1; j>=col; j--)
+                        a[i *cols+ j] -= a[i *cols+ col] * a[row *cols+ j];
 
-                pivot++
+                row++;
             }
         }
     }
@@ -103,11 +116,12 @@ public:
 };
 
 int main() {
-    double a[3][4] = {{3.0, 2.0, -4.0, 3.0},
-                      {2.0, 3.0, 3.0, 15.0},
-                      {5.0, -3.0, 1.0, 14.0}};
+    double a[3][4] = {{2.0, 3.0, 4.0, 6.0},
+                      {1.0, 2.0, 3.0, 4.0},
+                      {3.0, -4.0, 0.0, 10.0}};
+    double det;
 
-    Matrix().eliminate((double *)a, 3, 4);
+    Matrix().eliminate((double *)a, 3, 4, det);
 
     for (size_t i = 0; i < 3; ++i) {
         cout << "[";
@@ -122,6 +136,8 @@ int main() {
     Matrix().back_substitute((double *)a, x, 3, 4);
 
     cout << "(" << x[0] << ", " << x[1] << ", " << x[2] << ")" << endl;
+
+    cout << "Determinant : " << det << endl;
 
     return 0;
 }
