@@ -28,11 +28,9 @@ public:
                               // k     represents the current column
 
             // Step #1 : Find maximum element for each column
-            for (size_t i = k + 1; i < rows; i++) {
-                if (fabs(a[i * cols + k]) > fabs(a[pivot * cols + k])) {
+            for (size_t i = k + 1; i < rows; i++)
+                if (fabs(a[i * cols + k]) > fabs(a[pivot * cols + k]))
                     pivot = i;
-                }
-            }
 
             // Check to make sure matrix is good!
             if (a[pivot * cols + k] == 0) {
@@ -48,7 +46,7 @@ public:
             }
 
             // Loop for all remaining rows
-            for(size_t i=k+1; i<rows; i++) {
+            for (size_t i=k+1; i<rows; i++) {
 
                 // Step #3 : Finding fraction
                 double scale = a[i * cols + k] / a[k * cols + k];
@@ -82,9 +80,8 @@ public:
         for (int i = rows - 1; i >= 0; --i) {
             double sum = 0.0;
 
-            for (size_t j = cols - 2; j > i; --j) {
+            for (size_t j = cols - 2; j > i; --j)
                 sum += x[j] * a[i * cols + j];
-            }
 
             x[i] = (a[i * cols + cols - 1] - sum) / a[i * cols + i];
         }
@@ -92,20 +89,21 @@ public:
 
     void reduce(double *a, const size_t rows, const size_t cols) {
         // Applying Gauss-Jordan Elimination
+        size_t dimensions = (rows < cols)? rows : cols;
 
         // After this, we know what row to start on (r-1)
         // to go back through the matrix
         size_t row = 0;
-        for(size_t col=0; col<cols-1; col++) {
+        for (int col=0; col<dimensions; col++) {
             if (a[row *cols+ col] != 0) {
 
                 // divide row by pivot and leaving pivot as 1
-                for(size_t i=cols-1; i>=col; i--)
+                for (int i=cols-1; i>=col; i--)
                     a[row *cols+ i] /= a[row *cols+ col];
 
                 // subtract value from above row and set values above pivot to 0
-                for(size_t i=0; i<row-1; i++)
-                    for(size_t j=cols-1; j>=col; j--)
+                for (size_t i=0; i<row; i++)
+                    for (size_t j=cols-1; j>=col; j--)
                         a[i *cols+ j] -= a[i *cols+ col] * a[row *cols+ j];
 
                 row++;
@@ -119,23 +117,39 @@ int main() {
     double a[3][4] = {{2.0, 3.0, 4.0, 6.0},
                       {1.0, 2.0, 3.0, 4.0},
                       {3.0, -4.0, 0.0, 10.0}};
+
+    double b[3][6] = {{2.0,  3.0, 4.0, 1.0, 0.0, 0.0},
+                      {1.0,  2.0, 3.0, 0.0, 1.0, 0.0},
+                      {3.0, -4.0, 0.0, 0.0, 0.0, 1.0}};
+
     double det;
 
     Matrix().eliminate((double *)a, 3, 4, det);
 
-    for (size_t i = 0; i < 3; ++i) {
+    for (size_t i=0; i<3; ++i) {
         cout << "[";
-        for (size_t j = 0; j < 4; ++j)
+        for (size_t j=0; j<4; ++j)
             cout << a[i][j] << " ";
         cout << "]\n";
     }
 
     cout << endl;
 
-    double x[3] = {0, 0, 0};
-    Matrix().back_substitute((double *)a, x, 3, 4);
+    Matrix().reduce((double *)a, 3, 4);
 
-    cout << "(" << x[0] << ", " << x[1] << ", " << x[2] << ")" << endl;
+    for (size_t i=0; i<3; ++i) {
+        cout << "[";
+        for (size_t j=0; j<4; ++j)
+            cout << a[i][j] << " ";
+        cout << "]\n";
+    }
+
+    cout << "\n";
+
+    // double x[3] = {0, 0, 0};
+    // Matrix().back_substitute((double *)a, x, 3, 4);
+    //
+    // cout << "(" << x[0] << ", " << x[1] << ", " << x[2] << ")" << endl;
 
     cout << "Determinant : " << det << endl;
 
