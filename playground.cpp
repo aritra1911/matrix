@@ -76,7 +76,7 @@ void Playground::get_matrix(char arg) {
 
             for (size_t i=0; i<n; i++) {
                 for (size_t j=0; j<n; j++) {
-                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]\n";
+                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]: ";
                     cin >> a[i * n + j];
                 }
                 cout << endl;
@@ -89,7 +89,7 @@ void Playground::get_matrix(char arg) {
 
             for (size_t i=0; i<n; i++) {
                 for (size_t j=0; j<n+1; j++) {
-                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]\n";
+                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]: ";
                     cin >> a[i * (n+1) + j];
                 }
                 cout << endl;
@@ -103,7 +103,7 @@ void Playground::get_matrix(char arg) {
 
             for (size_t i=0; i<n; i++) {
                 for (size_t j=0; j<n; j++) {
-                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]\n";
+                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]: ";
                     cin >> a[i * n + j];
                 }
                 cout << endl;
@@ -123,8 +123,6 @@ void Playground::get_matrix(char arg) {
 }
 
 char Playground::check_augmented() {
-    cout << "(0L$ : " << cols << endl;
-    cout << "R0W$ : " << rows << endl;
     if (cols > rows) {
         if (cols > (rows + 1)) return 'i';
         return 's';
@@ -178,16 +176,16 @@ void Playground::fetch_adjoint_from_inverse() {
 }
 
 void Playground::show_matrix(char arg) {
-    double * matrix;
+    double* matrix;
     size_t r, c;
 
     switch(arg) {
         default:
-        case 'a': *matrix = *a; r = rows; c = cols; break;
-        case 't': *matrix = *transposed; r = cols; c = rows; break;
-        case 'j': *matrix = *adjoint; r = rows; c = rows; break;
-        case 'i': *matrix = *inverse; r = rows; c = rows; break;
-        case 's': *matrix = *solution; r = 1; c = rows; break;
+        case 'a': matrix = a; r = rows; c = cols; break;
+        case 't': matrix = transposed; r = cols; c = rows; break;
+        case 'j': matrix = adjoint; r = rows; c = rows; break;
+        case 'i': matrix = inverse; r = rows; c = rows; break;
+        case 's': matrix = solution; r = 1; c = rows; break;
     }
 
     for (size_t i=0; i<r; ++i) {
@@ -266,6 +264,7 @@ int main() {
                 if (ground.check_augmented() == 's') {
                     ground.solve();
                     ground.show_matrix('s');
+                    ground.show_determinant();
                 } else {
                     ground.invert();
                     ground.show_determinant();
@@ -278,6 +277,7 @@ int main() {
                 ground.show_determinant();
                 ground.show_matrix('i');
                 ground.show_matrix('j');
+                break;
 
             default : exit(0);
         }
