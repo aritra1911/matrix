@@ -1,4 +1,5 @@
 #include "matrix.h"
+#include <stdio.h>
 
 void Matrix::copy_matrix(double * const dest, const double * const src,
                          const size_t rows, const size_t cols) {
@@ -41,11 +42,11 @@ void Matrix::eliminate(double *a, const size_t rows, const size_t cols,
                 pivot = i;
 
         // Check to make sure matrix is good!
-        // if (a[pivot * cols + k] == 0) {
-        //     printf("The matrix is singular.\n");
-        //     // there still can be a solution, do something!
-        //     // exit(0);
-        // }
+        if (a[pivot * cols + k] == 0) {
+            printf("The matrix is singular.\n");
+            // there still can be a solution, do something!
+            // exit(0);
+        }
 
         // Step #2 : Swap row with highest value for that column to the top
         if (k != pivot) {

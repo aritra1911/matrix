@@ -104,7 +104,7 @@ void Playground::get_matrix(char arg) {
             for (size_t i=0; i<n; i++) {
                 for (size_t j=0; j<n; j++) {
                     cout << "Enter Matrix element["<<i<<"]["<<j<<"]: ";
-                    cin >> a[i * n + j];
+                    cin >> a[i * cols + j];
                 }
                 cout << endl;
             }
@@ -113,7 +113,6 @@ void Playground::get_matrix(char arg) {
             for (size_t i=0; i<rows; i++)
                 for (size_t j=rows; j<cols; j++)
                     a[i * cols + j] = (i==j%rows)? 1 : 0;
-
             break;
 
         default:
@@ -232,10 +231,8 @@ int main() {
                 if (!ground.get_switch_a()) {
                     ground.get_matrix('n');
                     ground.set_switch_a();
-                    // cout << ground.get_switch((switches) A) << endl;
                 }
                 else {
-                    // cout << "Not\n";
                     ground.reset_switches();
                     continue;
                 } break;
