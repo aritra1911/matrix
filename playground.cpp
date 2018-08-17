@@ -2,24 +2,28 @@
 
 #include <iostream>
 #include <cstdlib>
+#include <stdio.h>
 using namespace std;
 
 class Playground {
 private:
-    double *a, *transposed, *adjoint, *inverse, *solution, det;
+    double *a, *augmented, *transposed, *adjoint, *inverse, *solution, det;
     size_t rows, cols;
-    bool switch_a, switch_transposed, switch_adjoint,
+    bool switch_a, switch_transposed, switch_adjoint, flag_singular,
          switch_inverse, switch_solution, switch_determinant;
 
 public:
-    Playground();
-    void reset_switches();
     void set_switch_a();
     void set_switch_transposed();
     void set_switch_adjoint();
     void set_switch_inverse();
     void set_switch_solution();
     void set_switch_determinant();
+    void augment_with_identity();
+    void throw_singular_error();
+
+    Playground();
+    void reset_switches();
     bool get_switch_a();
     bool get_switch_transposed();
     bool get_switch_adjoint();
@@ -27,7 +31,9 @@ public:
     bool get_switch_solution();
     bool get_switch_determinant();
     void get_matrix(char);
-    char check_augmented();
+    bool is_augmented_with_constants();
+    bool is_augmented_with_identity();
+    bool is_singular();
     void solve();
     void transpose();
     void calculate_determinant();
@@ -43,10 +49,12 @@ Playground::Playground() {
 
 void Playground::reset_switches() {
     switch_a = false;
+    flag_singular = false;
     switch_transposed = false;
     switch_adjoint = false;
     switch_inverse = false;
     switch_solution = false;
+    switch_determinant = false;
 }
 
 void Playground::set_switch_a() { switch_a = true; }
@@ -95,47 +103,53 @@ void Playground::get_matrix(char arg) {
                 cout << endl;
             } break;
 
-        case 'a':
-        case 'i':
-            // augmented with identity
-            a = new double[n * 2*n];
-            cols = 2*n;
-
-            for (size_t i=0; i<n; i++) {
-                for (size_t j=0; j<n; j++) {
-                    cout << "Enter Matrix element["<<i<<"]["<<j<<"]: ";
-                    cin >> a[i * cols + j];
-                }
-                cout << endl;
-            }
-
-            // fill identity matrix
-            for (size_t i=0; i<rows; i++)
-                for (size_t j=rows; j<cols; j++)
-                    a[i * cols + j] = (i==j%rows)? 1 : 0;
-            break;
-
         default:
             cout << "Invalid argument '" << arg << "'supplied!\n";
             exit(0);
     }
 }
 
-char Playground::check_augmented() {
-    if (cols > rows) {
-        if (cols > (rows + 1)) return 'i';
-        return 's';
-    }
-    return '\0';
+bool Playground::is_augmented_with_constants() {
+    return (cols > rows && cols == (rows+1))? true : false;
+}
+
+bool Playground::is_augmented_with_identity() {
+    return (cols == 2*rows)? true : false;
+}
+
+bool Playground::is_singular() {
+    return flag_singular;
+}
+
+void Playground::throw_singular_error() {
+    cout << "Matrix is singular.\n";
+}
+
+void Playground::augment_with_identity() {
+    augmented = new double[rows * 2*rows];
+    Matrix().copy_matrix(augmented, a, rows, rows, 2*rows);
+    // for (size_t i = 0; i < rows; i++)
+    //     for (size_t j = 0; j < rows; j++)
+    //         augmented[i * 2*rows + j] = a[i * rows + j];
+
+    // fill identity matrix
+    for (size_t i=0; i<rows; i++)
+        for (size_t j=rows; j<2*rows; j++)
+            augmented[i * 2*rows + j] = (i==j%rows)? 1 : 0;
 }
 
 void Playground::solve() {
-    double *temp = new double[rows * cols];
+    double* temp = new double[rows * cols];
     Matrix().copy_matrix(temp, a, rows, cols);
     solution = new double[rows];
-    Matrix().eliminate(temp, rows, cols, det);
-    Matrix().back_substitute(temp, solution, rows, cols);
+    Matrix().eliminate(temp, rows, cols, det, flag_singular);
     set_switch_determinant();
+    if (is_singular()) {
+        throw_singular_error();
+        cout << "Probably no solution exists.\n";
+        return;
+    }
+    Matrix().back_substitute(temp, solution, rows, cols);
     set_switch_solution();
 }
 
@@ -150,24 +164,30 @@ void Playground::transpose() {
 void Playground::calculate_determinant() {
     double *temp = new double[rows * cols];
     Matrix().copy_matrix(temp, a, rows, cols);
-    Matrix().eliminate(temp, rows, cols, det);
+    Matrix().eliminate(temp, rows, cols, det, flag_singular);
     set_switch_determinant();
 }
 
 void Playground::invert() {
-    double *temp = new double[rows * cols];
-    Matrix().copy_matrix(temp, a, rows, cols);
-    Matrix().eliminate(temp, rows, cols, det);
-    Matrix().reduce(temp, rows, cols);
-    inverse = new double[rows*rows];
-    Matrix().filter_inverse(temp, inverse, rows, cols);
+    augment_with_identity();
+    double* temp = new double[rows * 2*rows];
+    Matrix().copy_matrix(temp, augmented, rows, 2*rows);
+    Matrix().eliminate(temp, rows, 2*rows, det, flag_singular);
     set_switch_determinant();
+    if (is_singular()) {
+        throw_singular_error();
+        cout << "Inverse hence not possible\n";
+        return;
+    }
+    Matrix().reduce(temp, rows, 2*rows);
+    inverse = new double[rows * rows];
+    Matrix().filter_inverse(temp, inverse, rows, 2*rows);
     set_switch_inverse();
 }
 
 void Playground::fetch_adjoint_from_inverse() {
     size_t n = rows; // dimensions
-    adjoint = new double[n*n];
+    adjoint = new double[n * n];
     for (size_t i=0; i<n; i++)
         for (size_t j=0; j<n; j++)
             adjoint[i * n + j] = inverse[i * n + j] * det;
@@ -201,24 +221,25 @@ void Playground::show_determinant() {
 
 int main() {
     Playground ground;
+    bool avail_34 = false, avail_5 = false; // available options
 
     do {
+        // system("clear");
         if (!ground.get_switch_a()) {
-            // cout << ground.get_switch_a() << endl;
-            cout << " 1 >> ENTER SIMPLE SQUARE MATRIX\n";
+            cout << " 1 >> ENTER SQUARE MATRIX\n";
             cout << " 2 >> ENTER AUGMENTED MATRIX\n";
-            // TODO: Remove this
-            cout << " 3 >> ENTER MATRIX TO BE INVERTED\n";
         } else {
             cout << " 1 >> CHANGE MATRIX\n";
             cout << " 2 >> TRANSPOSE\n";
             cout << " 3 >> FIND DETERMINANT\n";
-            char aug = ground.check_augmented();
-            if (aug == 'i') {
+            avail_34 = true;
+            if (ground.is_augmented_with_constants())
+                cout << " 4 >> FIND SOLUTION & DETERMINANT\n";
+            else {
                 cout << " 4 >> FIND DETERMINANT & INVERSE\n";
                 cout << " 5 >> FIND DETERMINANT, INVERSE & ADJOINT\n";
-            } else if (aug == 's')
-                cout << " 4 >> FIND SOLUTION & DETERMINANT\n";
+                avail_5 = true;
+            }
         }
         cout << "99 >> QUIT\n";
 
@@ -231,53 +252,58 @@ int main() {
                 if (!ground.get_switch_a()) {
                     ground.get_matrix('n');
                     ground.set_switch_a();
-                }
-                else {
+                } else {
                     ground.reset_switches();
-                    continue;
+                    break;
                 } break;
 
             case 2:
                 if (!ground.get_switch_a()) {
                     ground.get_matrix('s');
                     ground.set_switch_a();
-                }
-                else {
+                } else {
                     ground.transpose();
                     ground.show_matrix('t');
                 } break;
 
             case 3:
-                if (!ground.get_switch_a()) {
-                    ground.get_matrix('i');
-                    ground.set_switch_a();
-                }
-                else {
+                if (!avail_34) continue;
+                if (!ground.get_switch_determinant())
                     ground.calculate_determinant();
-                    ground.show_determinant();
-                } break;
+                ground.show_determinant();
+                break;
 
             case 4:
-                if (ground.check_augmented() == 's') {
+                if (!avail_34) continue;
+                if (ground.is_augmented_with_constants()) {
                     ground.solve();
-                    ground.show_matrix('s');
                     ground.show_determinant();
+                    if (ground.is_singular()) break;
+                    cout << "\nSolution :\n";
+                    ground.show_matrix('s');
+                    cout << endl;
                 } else {
                     ground.invert();
                     ground.show_determinant();
+                    if (ground.is_singular()) break;
+                    cout << "\nInverse :\n";
                     ground.show_matrix('i');
                 } break;
 
             case 5:
+                if (!avail_5) continue;
                 ground.invert();
-                ground.fetch_adjoint_from_inverse();
                 ground.show_determinant();
+                if (ground.is_singular()) break;
+                ground.fetch_adjoint_from_inverse();
+                cout << "\nInverse :\n";
                 ground.show_matrix('i');
+                cout << "\nAdjoint :\n";
                 ground.show_matrix('j');
                 break;
 
             default : exit(0);
-        }
+        } cout << endl;
     } while (true);
 
     return 0;

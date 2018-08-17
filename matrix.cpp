@@ -2,10 +2,12 @@
 #include <stdio.h>
 
 void Matrix::copy_matrix(double * const dest, const double * const src,
-                         const size_t rows, const size_t cols) {
+                         const size_t rows, const size_t cols, size_t col_size)
+{
+    if (col_size == -1) col_size = cols;
     for (size_t i = 0; i < rows; i++)
         for (size_t j = 0; j < cols; j++)
-            dest[i * cols + j] = src[i * cols + j];
+            dest[i * col_size + j] = src[i * cols + j];
 }
 
 void Matrix::swap_rows(double * const a, size_t i, size_t pivot, size_t cols) {
@@ -22,11 +24,11 @@ void Matrix::filter_inverse(const double * const a, double * const x,
                             const size_t rows, const size_t cols) {
     for (size_t i=0; i<rows; i++)
         for (size_t j=rows; j<cols; j++)
-            x[i *rows+ (j-rows)] = a[i *cols+ j];
+            x[i * rows + (j-rows)] = a[i * cols + j];
 }
 
-void Matrix::eliminate(double *a, const size_t rows, const size_t cols,
-               double &det) {
+void Matrix::eliminate(double* a, const size_t rows, const size_t cols,
+                       double &det, bool &singular) {
     // Applying Gaussian Elimination
     size_t dimensions = (rows < cols)? rows : cols;
     det = 1.0; // Assuming positive
@@ -43,9 +45,9 @@ void Matrix::eliminate(double *a, const size_t rows, const size_t cols,
 
         // Check to make sure matrix is good!
         if (a[pivot * cols + k] == 0) {
-            printf("The matrix is singular.\n");
-            // there still can be a solution, do something!
-            // exit(0);
+            singular = true;
+            det = 0;
+            return;
         }
 
         // Step #2 : Swap row with highest value for that column to the top
@@ -119,51 +121,3 @@ void Matrix::reduce(double *a, const size_t rows, const size_t cols) {
         }
     }
 }
-/*
-int main() {
-    double a[3][4] = {{3.0, 2.0, -4.0, 3.0},
-                      {2.0, 3.0, 3.0, 15.0},
-                      {5.0, -3.0, 1.0, 14.0}};
-
-    double b[3][4] = {{2.0, 3.0, 4.0, 6.0},
-                      {1.0, 2.0, 3.0, 4.0},
-                      {3.0, -4.0, 0.0, 10.0}};
-
-    double c[3][6] = {{2.0,  3.0, 4.0, 1.0, 0.0, 0.0},
-                      {1.0,  2.0, 3.0, 0.0, 1.0, 0.0},
-                      {3.0, -4.0, 0.0, 0.0, 0.0, 1.0}};
-
-    double det;
-
-    Matrix().eliminate((double *)a, 3, 4, det);
-
-    for (size_t i=0; i<3; ++i) {
-        cout << "[";
-        for (size_t j=0; j<4; ++j)
-            cout << a[i][j] << " ";
-        cout << "]\n";
-    }
-
-    cout << endl;
-
-    Matrix().reduce((double *)a, 3, 4);
-
-    for (size_t i=0; i<3; ++i) {
-        cout << "[";
-        for (size_t j=0; j<4; ++j)
-            cout << a[i][j] << " ";
-        cout << "]\n";
-    }
-
-    cout << "\n";
-
-    // double x[3] = {0, 0, 0};
-    // Matrix().back_substitute((double *)a, x, 3, 4);
-    //
-    // cout << "(" << x[0] << ", " << x[1] << ", " << x[2] << ")" << endl;
-
-    cout << "Determinant : " << det << endl;
-
-    return 0;
-}
-*/
