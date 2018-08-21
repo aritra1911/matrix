@@ -12,7 +12,6 @@ private:
     bool switch_a, switch_transposed, switch_adjoint, flag_singular,
          switch_inverse, switch_solution, switch_determinant;
 
-public:
     void set_switch_a();
     void set_switch_transposed();
     void set_switch_adjoint();
@@ -20,8 +19,8 @@ public:
     void set_switch_solution();
     void set_switch_determinant();
     void augment_with_identity();
-    void throw_singular_error();
 
+public:
     Playground();
     void reset_switches();
     bool get_switch_a();
@@ -88,7 +87,8 @@ void Playground::get_matrix(char arg) {
                     cin >> a[i * n + j];
                 }
                 cout << endl;
-            } break;
+            }
+            set_switch_a(); break;
 
         case 's':
             // augmented linear equation constants
@@ -101,7 +101,8 @@ void Playground::get_matrix(char arg) {
                     cin >> a[i * (n+1) + j];
                 }
                 cout << endl;
-            } break;
+            }
+            set_switch_a(); break;
 
         default:
             cout << "Invalid argument '" << arg << "'supplied!\n";
@@ -121,16 +122,9 @@ bool Playground::is_singular() {
     return flag_singular;
 }
 
-void Playground::throw_singular_error() {
-    cout << "Matrix is singular.\n";
-}
-
 void Playground::augment_with_identity() {
     augmented = new double[rows * 2*rows];
     Matrix().copy_matrix(augmented, a, rows, rows, 2*rows);
-    // for (size_t i = 0; i < rows; i++)
-    //     for (size_t j = 0; j < rows; j++)
-    //         augmented[i * 2*rows + j] = a[i * rows + j];
 
     // fill identity matrix
     for (size_t i=0; i<rows; i++)
@@ -145,10 +139,11 @@ void Playground::solve() {
     Matrix().eliminate(temp, rows, cols, det, flag_singular);
     set_switch_determinant();
     if (is_singular()) {
-        throw_singular_error();
+        cout << "Matrix is singular.\n";
         cout << "Probably no solution exists.\n";
         return;
     }
+
     Matrix().back_substitute(temp, solution, rows, cols);
     set_switch_solution();
 }
@@ -175,10 +170,10 @@ void Playground::invert() {
     Matrix().eliminate(temp, rows, 2*rows, det, flag_singular);
     set_switch_determinant();
     if (is_singular()) {
-        throw_singular_error();
-        cout << "Inverse hence not possible\n";
+        cout << "Inverse matrix doesn't exist\n";
         return;
     }
+
     Matrix().reduce(temp, rows, 2*rows);
     inverse = new double[rows * rows];
     Matrix().filter_inverse(temp, inverse, rows, 2*rows);
@@ -249,19 +244,16 @@ int main() {
 
         switch (choice) {
             case 1:
-                if (!ground.get_switch_a()) {
+                if (!ground.get_switch_a())
                     ground.get_matrix('n');
-                    ground.set_switch_a();
-                } else {
+                else
                     ground.reset_switches();
-                    break;
-                } break;
+                break;
 
             case 2:
-                if (!ground.get_switch_a()) {
+                if (!ground.get_switch_a())
                     ground.get_matrix('s');
-                    ground.set_switch_a();
-                } else {
+                else {
                     ground.transpose();
                     ground.show_matrix('t');
                 } break;

@@ -1,6 +1,8 @@
 #include "matrix.h"
 #include <stdio.h>
 
+#define MIN 5e-4
+
 void Matrix::copy_matrix(double * const dest, const double * const src,
                          const size_t rows, const size_t cols, size_t col_size)
 {
@@ -44,7 +46,7 @@ void Matrix::eliminate(double* a, const size_t rows, const size_t cols,
                 pivot = i;
 
         // Check to make sure matrix is good!
-        if (a[pivot * cols + k] == 0) {
+        if (fabs(a[pivot * cols + k]) < MIN) {
             singular = true;
             det = 0;
             return;
