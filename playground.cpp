@@ -71,9 +71,15 @@ bool Playground::get_switch_solution() { return switch_solution; }
 bool Playground::get_switch_determinant() { return switch_determinant; }
 
 void Playground::get_matrix(char arg) {
+    if (switch_a) return;
     size_t n;
-    cout << "Enter dimensions of matrix: ";
-    cin >> n; rows = n;
+
+    do {
+        cout << "Enter dimensions of matrix: ";
+        cin >> n;
+        if (n < 2) cout << "Least possible dimensions are 2.\n";
+    } while (n < 2);
+    rows = n;
 
     switch (arg) {
         case 'n':
@@ -111,7 +117,7 @@ void Playground::get_matrix(char arg) {
 }
 
 bool Playground::is_augmented_with_constants() {
-    return (cols > rows && cols == (rows+1))? true : false;
+    return (cols == (rows+1))? true : false;
 }
 
 bool Playground::is_augmented_with_identity() {
@@ -133,6 +139,7 @@ void Playground::augment_with_identity() {
 }
 
 void Playground::solve() {
+    if (switch_solution) return;
     double* temp = new double[rows * cols];
     Matrix().copy_matrix(temp, a, rows, cols);
     solution = new double[rows];
@@ -140,7 +147,6 @@ void Playground::solve() {
     set_switch_determinant();
     if (is_singular()) {
         cout << "Matrix is singular.\n";
-        cout << "Probably no solution exists.\n";
         return;
     }
 
@@ -149,6 +155,7 @@ void Playground::solve() {
 }
 
 void Playground::transpose() {
+    if (switch_transposed) return;
     transposed = new double[rows*cols];
     for (size_t i=0; i<cols; i++)
         for (size_t j=0; j<rows; j++)
@@ -157,6 +164,7 @@ void Playground::transpose() {
 }
 
 void Playground::calculate_determinant() {
+    if (switch_determinant) return;
     double *temp = new double[rows * cols];
     Matrix().copy_matrix(temp, a, rows, cols);
     Matrix().eliminate(temp, rows, cols, det, flag_singular);
@@ -164,12 +172,13 @@ void Playground::calculate_determinant() {
 }
 
 void Playground::invert() {
+    if (switch_inverse) return;
     augment_with_identity();
     double* temp = new double[rows * 2*rows];
     Matrix().copy_matrix(temp, augmented, rows, 2*rows);
     Matrix().eliminate(temp, rows, 2*rows, det, flag_singular);
     set_switch_determinant();
-    if (is_singular()) {
+    if (flag_singular) {
         cout << "Inverse matrix doesn't exist\n";
         return;
     }
@@ -181,6 +190,7 @@ void Playground::invert() {
 }
 
 void Playground::fetch_adjoint_from_inverse() {
+    if (switch_adjoint) return;
     size_t n = rows; // dimensions
     adjoint = new double[n * n];
     for (size_t i=0; i<n; i++)
@@ -208,6 +218,8 @@ void Playground::show_matrix(char arg) {
             cout << matrix[i * c + j] << " ";
         cout << "]\n";
     }
+
+    cout << endl;
 }
 
 void Playground::show_determinant() {
@@ -219,7 +231,6 @@ int main() {
     bool avail_34 = false, avail_5 = false; // available options
 
     do {
-        // system("clear");
         if (!ground.get_switch_a()) {
             cout << " 1 >> ENTER SQUARE MATRIX\n";
             cout << " 2 >> ENTER AUGMENTED MATRIX\n";
@@ -259,21 +270,20 @@ int main() {
                 } break;
 
             case 3:
-                if (!avail_34) continue;
-                if (!ground.get_switch_determinant())
-                    ground.calculate_determinant();
+                if (!avail_34) exit(0);
+                ground.calculate_determinant();
                 ground.show_determinant();
+                cout << endl;
                 break;
 
             case 4:
-                if (!avail_34) continue;
+                if (!avail_34) exit(0);
                 if (ground.is_augmented_with_constants()) {
                     ground.solve();
                     ground.show_determinant();
                     if (ground.is_singular()) break;
                     cout << "\nSolution :\n";
                     ground.show_matrix('s');
-                    cout << endl;
                 } else {
                     ground.invert();
                     ground.show_determinant();
@@ -283,7 +293,7 @@ int main() {
                 } break;
 
             case 5:
-                if (!avail_5) continue;
+                if (!avail_5) exit(0);
                 ground.invert();
                 ground.show_determinant();
                 if (ground.is_singular()) break;
