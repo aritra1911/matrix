@@ -1,9 +1,28 @@
-#include "matrix.h"
+// Designed & Developed by Aritra Sarkar
+// This project is open source
+// Source code available at https://github.com/aritra1911/matrix
 
 #include <iostream>
+#include <iomanip>
 #include <cstdlib>
 #include <stdio.h>
+#include "matrix.h"
 using namespace std;
+
+int no_of_digits(int num) {
+    int n = 0;
+    num = abs(num);
+    if (num == 0) return 1;
+    while (num > 0) { n++; num /= 10; }
+    return n;
+}
+
+void banner() {
+    cout << " _______   _______  _______  ______ _____ _      _\n";
+    cout << "|   |   | |_______|    |    |_____/   |    \\____/\n";
+    cout << "|   |   | |       |    |    |    \\_ __|__ _/    \\_\n";
+    cout << endl;
+}
 
 class Playground {
 private:
@@ -76,7 +95,7 @@ void Playground::get_matrix(char arg) {
 
     do {
         cout << "Enter dimensions of matrix: ";
-        cin >> n;
+        int dim; cin >> dim; n = abs(dim);
         if (n < 2) cout << "Least possible dimensions are 2.\n";
     } while (n < 2);
     rows = n;
@@ -212,10 +231,22 @@ void Playground::show_matrix(char arg) {
         case 's': matrix = solution; r = 1; c = rows; break;
     }
 
+    // Find maximum
+    double max = 0;
+    for (size_t i=0; i<r; i++)
+        for (size_t j=0; j<c; ++j)
+            if (fabs(matrix[i * c + j]) > max) max = matrix[i * c + j];
+
+    int pre = 3; // precision
+    int pad = 2; // padding
+    int spc = no_of_digits((int) max) + pre + pad + 2; // '-' + '.' = 2
+
     for (size_t i=0; i<r; ++i) {
         cout << "[";
-        for (size_t j=0; j<c; ++j)
-            cout << matrix[i * c + j] << " ";
+        for (size_t j=0; j<c; ++j) {
+            cout << fixed << setw(spc) << setprecision(pre);
+            cout << matrix[i * c + j];
+        }
         cout << "]\n";
     }
 
@@ -230,6 +261,7 @@ int main() {
     Playground ground;
     bool avail_34 = false, avail_5 = false; // available options
 
+    banner();
     do {
         if (!ground.get_switch_a()) {
             cout << " 1 >> ENTER SQUARE MATRIX\n";
@@ -257,9 +289,10 @@ int main() {
             case 1:
                 if (!ground.get_switch_a())
                     ground.get_matrix('n');
-                else
+                else {
                     ground.reset_switches();
-                break;
+                    cout << endl;
+                } break;
 
             case 2:
                 if (!ground.get_switch_a())
