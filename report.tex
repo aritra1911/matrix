@@ -1,0 +1,59 @@
+\documentclass{article}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+%% Define your header here. 
+%% See http://texblog.org/2007/11/07/headerfooter-in-latex-with-fancyhdr/
+\fancyhead[CO,CE]{Matrix}
+\fancyhead[LE,LO]{playground.cpp}
+\fancyhead[RE,RO]{\thepage}
+\fancyfoot[CO,CE]{Matrix}
+\fancyfoot[LE,LO]{playground.cpp}
+\fancyfoot[RE,RO]{\thepage}
+
+\renewcommand{\headrulewidth}{0.0pt}
+\renewcommand{\footrulewidth}{0.0pt}
+
+\usepackage[usenames,dvipsnames]{color}  %% Allow color names
+\definecolor{dark-gray}{gray}{0.25}
+
+%% The listings package will format your source code
+\usepackage{listings}
+\lstdefinestyle{customasm}{
+  belowcaptionskip=1\baselineskip,
+  xleftmargin=\parindent,
+  language=C++,
+  numberstyle=\ttfamily,
+  numbers=left,
+  stepnumber=1,
+  breaklines=true, %% Wrap long lines
+  basicstyle=\footnotesize\ttfamily,
+  commentstyle=\itshape\color{Gray},
+  stringstyle=\color{Black},
+  keywordstyle=\bfseries\color{dark-gray},
+  identifierstyle=\color{Black},
+  xleftmargin=-8em,
+  showstringspaces=false
+}        
+\begin{document}
+
+\lstinputlisting[style=customasm]{/home/ray/codes/cpp/matrix/playground.cpp}
+
+\newpage
+\fancyhead[CO,CE]{Matrix}
+\fancyhead[LE,LO]{matrix.cpp}
+\fancyhead[RE,RO]{\thepage}
+\fancyfoot[CO,CE]{Matrix}
+\fancyfoot[LE,LO]{matrix.cpp}
+\fancyfoot[RE,RO]{\thepage}
+\lstinputlisting[style=customasm]{/home/ray/codes/cpp/matrix/matrix.cpp}
+
+\newpage
+\fancyhead[CO,CE]{Matrix}
+\fancyhead[LE,LO]{matrix.h}
+\fancyhead[RE,RO]{\thepage}
+\fancyfoot[CO,CE]{Matrix}
+\fancyfoot[LE,LO]{matrix.h}
+\fancyfoot[RE,RO]{\thepage}
+\lstinputlisting[style=customasm]{/home/ray/codes/cpp/matrix/matrix.h}
+
+\end{document}
