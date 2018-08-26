@@ -228,22 +228,33 @@ void Playground::show_matrix(char arg) {
         case 't': matrix = transposed; r = cols; c = rows; break;
         case 'j': matrix = adjoint; r = rows; c = rows; break;
         case 'i': matrix = inverse; r = rows; c = rows; break;
-        case 's': matrix = solution; r = 1; c = rows; break;
+        case 's':
+            for (size_t j=0; j<rows; j++)
+                cout << "X" << (j+1) << " = " << solution[j] << endl;
+            cout << endl; return;
     }
 
-    // Find maximum
+    int neg = 0; // -ve sign
+
+    // Find maximum & search for -ves
     double max = 0;
     for (size_t i=0; i<r; i++)
-        for (size_t j=0; j<c; ++j)
-            if (fabs(matrix[i * c + j]) > max) max = matrix[i * c + j];
+        for (size_t j=0; j<c; ++j) {
+            if (fabs(matrix[i * c + j]) > max)
+                max = matrix[i * c + j];
+            if (neg == 0 && matrix[i * c + j] < 0)
+                neg = 1;
+        }
 
     int pre = 3; // precision
     int pad = 2; // padding
-    int spc = no_of_digits((int) max) + pre + pad + 2; // '-' + '.' = 2
 
-    for (size_t i=0; i<r; ++i) {
+    int spc = no_of_digits((int) max) + pre + pad + neg + 1; // 1 => '.'
+
+    for (size_t i=0; i<r; i++) {
         cout << "[";
-        for (size_t j=0; j<c; ++j) {
+        for (size_t j=0; j<c; j++) {
+            if (j == r) cout << " | ";
             cout << fixed << setw(spc) << setprecision(pre);
             cout << matrix[i * c + j];
         }
@@ -259,7 +270,9 @@ void Playground::show_determinant() {
 
 int main() {
     Playground ground;
-    bool avail_34 = false, avail_5 = false; // available options
+
+    // available options
+    bool avail_345 = false, avail_6 = false;
 
     banner();
     do {
@@ -267,16 +280,17 @@ int main() {
             cout << " 1 >> ENTER SQUARE MATRIX\n";
             cout << " 2 >> ENTER AUGMENTED MATRIX\n";
         } else {
-            cout << " 1 >> CHANGE MATRIX\n";
-            cout << " 2 >> TRANSPOSE\n";
-            cout << " 3 >> FIND DETERMINANT\n";
-            avail_34 = true;
+            cout << " 1 >> VIEW MATRIX\n";
+            cout << " 2 >> CHANGE MATRIX\n";
+            cout << " 3 >> TRANSPOSE\n";
+            cout << " 4 >> FIND DETERMINANT\n";
+            avail_345 = true;
             if (ground.is_augmented_with_constants())
-                cout << " 4 >> FIND SOLUTION & DETERMINANT\n";
+                cout << " 5 >> FIND SOLUTION & DETERMINANT\n";
             else {
-                cout << " 4 >> FIND DETERMINANT & INVERSE\n";
-                cout << " 5 >> FIND DETERMINANT, INVERSE & ADJOINT\n";
-                avail_5 = true;
+                cout << " 5 >> FIND DETERMINANT & INVERSE\n";
+                cout << " 6 >> FIND DETERMINANT, INVERSE & ADJOINT\n";
+                avail_6 = true;
             }
         }
         cout << "99 >> QUIT\n";
@@ -290,27 +304,36 @@ int main() {
                 if (!ground.get_switch_a())
                     ground.get_matrix('n');
                 else {
-                    ground.reset_switches();
-                    cout << endl;
+                    cout << "\nCurrent Matrix :\n";
+                    ground.show_matrix('a');
                 } break;
 
             case 2:
                 if (!ground.get_switch_a())
                     ground.get_matrix('s');
                 else {
-                    ground.transpose();
-                    ground.show_matrix('t');
+                    ground.reset_switches();
+                    avail_345 = false;
+                    avail_6 = false;
+                    cout << endl;
                 } break;
 
             case 3:
-                if (!avail_34) exit(0);
+                if (!avail_345) exit(0);
+                ground.transpose();
+                cout << "\nTransposed Matrix :\n";
+                ground.show_matrix('t');
+                break;
+
+            case 4:
+                if (!avail_345) exit(0);
                 ground.calculate_determinant();
                 ground.show_determinant();
                 cout << endl;
                 break;
 
-            case 4:
-                if (!avail_34) exit(0);
+            case 5:
+                if (!avail_345) exit(0);
                 if (ground.is_augmented_with_constants()) {
                     ground.solve();
                     ground.show_determinant();
@@ -325,8 +348,8 @@ int main() {
                     ground.show_matrix('i');
                 } break;
 
-            case 5:
-                if (!avail_5) exit(0);
+            case 6:
+                if (!avail_6) exit(0);
                 ground.invert();
                 ground.show_determinant();
                 if (ground.is_singular()) break;
