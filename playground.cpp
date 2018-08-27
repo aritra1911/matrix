@@ -5,7 +5,6 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
-#include <stdio.h>
 #include "matrix.h"
 using namespace std;
 
